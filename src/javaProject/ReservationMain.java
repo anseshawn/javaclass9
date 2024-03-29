@@ -11,12 +11,13 @@ import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import java.awt.Color;
 
 public class ReservationMain extends JFrame {
 	JButton btnLogout,btnMyPage,btnReserve;
 	JLabel lblTitle;
 	
-	public ReservationMain() {
+	public ReservationMain(String id) {
 		super("메인 화면");
 		setSize(800,600);
 		getContentPane().setLayout(null);
@@ -27,13 +28,15 @@ public class ReservationMain extends JFrame {
 		pn1.setLayout(null);
 		
 		btnLogout = new JButton("로그아웃");
+		btnLogout.setBackground(new Color(255, 255, 255));
 		btnLogout.setFont(new Font("이사만루체 Light", Font.PLAIN, 14));
-		btnLogout.setBounds(631, 10, 97, 30);
+		btnLogout.setBounds(631, 10, 105, 30);
 		pn1.add(btnLogout);
 		
 		btnMyPage = new JButton("마이페이지");
+		btnMyPage.setBackground(new Color(255, 255, 255));
 		btnMyPage.setFont(new Font("이사만루체 Light", Font.PLAIN, 14));
-		btnMyPage.setBounds(29, 10, 97, 30);
+		btnMyPage.setBounds(29, 10, 105, 30);
 		pn1.add(btnMyPage);
 		
 		lblTitle = new JLabel("연 습 실   예 약");
@@ -53,6 +56,7 @@ public class ReservationMain extends JFrame {
 		pn3.setLayout(null);
 		
 		btnReserve = new JButton("예약하기");
+		btnReserve.setBackground(new Color(255, 255, 255));
 		btnReserve.setFont(new Font("이사만루체 Light", Font.PLAIN, 14));
 		btnReserve.setBounds(29, 10, 97, 30);
 		pn3.add(btnReserve);
@@ -67,7 +71,15 @@ public class ReservationMain extends JFrame {
 		btnReserve.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
-				new ReservationStudio();
+				new ReservationStudio(id);
+			}
+		});
+		
+		// 마이페이지
+		btnMyPage.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+				new MyPage(id);
 			}
 		});
 		
@@ -92,7 +104,7 @@ public class ReservationMain extends JFrame {
 		int ans = JOptionPane.showConfirmDialog(null, "로그아웃 하시겠습니까?","",JOptionPane.YES_NO_OPTION);
 		if(ans == 0) {
 			dispose();
-			new Login();
+			new StudentLogin();
 		}
 		else {
 			JOptionPane.showMessageDialog(null, "취소되었습니다.");

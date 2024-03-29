@@ -9,6 +9,8 @@ public class ReservationVO {
 	private String studionName;
 	
 	private String reservedTime;
+	
+	private String cbToday;
 
 	public String getStudentID() {
 		return studentID;
@@ -62,6 +64,14 @@ public class ReservationVO {
 	public String toString() {
 		return "ReservationVO [studentID=" + studentID + ", studentPW=" + studentPW + ", studentName=" + studentName
 				+ ", studioIdx=" + studioIdx + ", studionName=" + studionName + ", reservedTime=" + reservedTime + "]";
+	}
+
+	public String getCbToday() {
+		return cbToday;
+	}
+
+	public void setCbToday(String cbToday) {
+		this.cbToday = cbToday;
 	}
 	
 }

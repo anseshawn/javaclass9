@@ -15,7 +15,7 @@ import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
 
-public class Login extends JFrame {
+public class StudentLogin extends JFrame {
 	ReservationDAO dao = new ReservationDAO();
 	
 	private JTextField txtStudentID;
@@ -23,7 +23,7 @@ public class Login extends JFrame {
 	private JLabel lblStudentID,lblPassword;
 	private JButton btnNewButton;
 	
-	public Login() {
+	public StudentLogin() {
 		super("로그인");
 		setSize(300, 150);
 		getContentPane().setLayout(null);
@@ -99,7 +99,7 @@ public class Login extends JFrame {
 			String res = dao.matchIDPW(id);
 			if(res.equals(pw)) {
 				dispose();
-				new ReservationMain();				
+				new ReservationMain(id);				
 			}
 			else {
 				JOptionPane.showMessageDialog(null, "비밀번호가 틀렸습니다.","",JOptionPane.WARNING_MESSAGE);
@@ -109,8 +109,8 @@ public class Login extends JFrame {
 			}
 		}
 	}
-	
+		
 	public static void main(String[] args) {
-		new Login();
+		new StudentLogin();
 	}
 }
