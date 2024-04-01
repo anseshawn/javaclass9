@@ -1,4 +1,4 @@
-package javaProject;
+package javaclass9;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -17,6 +17,7 @@ import java.awt.event.ActionEvent;
 
 public class StudentLogin extends JFrame {
 	ReservationDAO dao = new ReservationDAO();
+	ReservationVO vo = null;
 	
 	private JTextField txtStudentID;
 	private JPasswordField txtPassword;
@@ -87,26 +88,34 @@ public class StudentLogin extends JFrame {
 	protected void studentIDCheck() {
 		String id = txtStudentID.getText().trim();
 		String pw = txtPassword.getText().trim();
-		if(!Pattern.matches("^[0-9]{9}$", id) && !id.equals("admin")) {
-			JOptionPane.showMessageDialog(null, "학번을 다시 확인해주세요.");
-			txtStudentID.requestFocus();
-		}
-		else if(pw.equals("")) {
-			JOptionPane.showMessageDialog(null, "비밀번호를 입력해주세요.");
-			txtPassword.requestFocus();
-		}
-		else { // 아이디와 비밀번호 매치 확인
-			String res = dao.matchIDPW(id);
-			if(res.equals(pw)) {
-				dispose();
-				new ReservationMain(id);				
-			}
-			else {
-				JOptionPane.showMessageDialog(null, "비밀번호가 틀렸습니다.","",JOptionPane.WARNING_MESSAGE);
-				txtStudentID.setText("");
-				txtPassword.setText("");
+		vo = dao.studentList(id);
+		if(vo.getStudentName() != null) {
+			if(!Pattern.matches("^[0-9]{9}$", id) && !id.equals("admin")) {
+				JOptionPane.showMessageDialog(null, "학번을 다시 확인해주세요.");
 				txtStudentID.requestFocus();
 			}
+			else if(pw.equals("")) {
+				JOptionPane.showMessageDialog(null, "비밀번호를 입력해주세요.");
+				txtPassword.requestFocus();
+			}
+			else { // 아이디와 비밀번호 매치 확인
+				String res = dao.matchIDPW(id);
+				if(res.equals(pw)) {
+					dispose();
+					new ReservationMain(id);				
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "비밀번호가 틀렸습니다.","",JOptionPane.WARNING_MESSAGE);
+					txtStudentID.setText("");
+					txtPassword.setText("");
+					txtStudentID.requestFocus();
+				}
+			}
+		}
+		else { // 데이터베이스에 존재하는 학번인지 확인
+			JOptionPane.showMessageDialog(null, "존재하지 않는 학번입니다.");
+			txtPassword.setText("");
+			txtStudentID.requestFocus();
 		}
 	}
 		

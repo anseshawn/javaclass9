@@ -1,4 +1,4 @@
-package javaProject;
+package javaclass9;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;

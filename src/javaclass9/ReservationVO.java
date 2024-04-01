@@ -1,4 +1,4 @@
-package javaProject;
+package javaclass9;
 
 public class ReservationVO {
 	private String studentID;
@@ -6,7 +6,7 @@ public class ReservationVO {
 	private String studentName;
 	
 	private int studioIdx;
-	private String studionName;
+	private String studioName;
 	
 	private String reservedTime;
 	
@@ -44,12 +44,12 @@ public class ReservationVO {
 		this.studioIdx = studioIdx;
 	}
 
-	public String getStudionName() {
-		return studionName;
+	public String getstudioName() {
+		return studioName;
 	}
 
-	public void setStudionName(String studionName) {
-		this.studionName = studionName;
+	public void setstudioName(String studioName) {
+		this.studioName = studioName;
 	}
 
 	public String getReservedTime() {
@@ -63,7 +63,7 @@ public class ReservationVO {
 	@Override
 	public String toString() {
 		return "ReservationVO [studentID=" + studentID + ", studentPW=" + studentPW + ", studentName=" + studentName
-				+ ", studioIdx=" + studioIdx + ", studionName=" + studionName + ", reservedTime=" + reservedTime + "]";
+				+ ", studioIdx=" + studioIdx + ", studioName=" + studioName + ", reservedTime=" + reservedTime + "]";
 	}
 
 	public String getCbToday() {

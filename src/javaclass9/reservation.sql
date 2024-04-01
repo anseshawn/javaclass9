@@ -54,6 +54,8 @@ drop table reservation;
 insert into reservation values(202401001,1,'2024-03-28 17:00:00');
 insert into reservation values(202401001,1,'2024-4-2 17:00:00');
 select * from reservation;
+delete from reservation;
+
 select date_format(reservedDate,'%y-%m-%d') as selectDate from reservation;
 select substring(reservedDate,12,5) as selectTime from reservation;
 
@@ -68,6 +70,9 @@ desc calendar;
 drop table calendar;
 insert into calendar values(default);
 select * from calendar;
+
+
+-- 함수 테스트
 select concat(year(today),'-',month(today),'-',day(today)) as cbToday from calendar;
 select day(last_day(cal)) as lastDay from calendar;		/* 달의 마지막 일자 */
 

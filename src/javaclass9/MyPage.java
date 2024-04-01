@@ -1,4 +1,4 @@
-package javaProject;
+package javaclass9;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -18,7 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 public class MyPage extends JFrame{
-	private JButton btnBack,btnList,btnUpdate,btnDelete;
+	private JButton btnBack,btnUpdate,btnDelete,btnChangePW;
 	private JScrollPane scrollPane;
 	private JLabel lblMypage;
 	private JTable table;
@@ -42,12 +42,12 @@ public class MyPage extends JFrame{
 		btnBack = new JButton("뒤로가기");
 		btnBack.setBackground(new Color(255, 255, 255));
 		btnBack.setFont(new Font("이사만루체 Medium", Font.PLAIN, 15));
-		btnBack.setBounds(440, 5, 120, 25);
+		btnBack.setBounds(443, 5, 105, 25);
 		pn1.add(btnBack);
 		
 		// 상단에 로그인 한 유저의 학번 및 이름 출력
-		String name = myInfo(id);
-		lblMypage = new JLabel("학번 : "+id+" / 이름 : "+name);
+		vo = myInfo(id);
+		lblMypage = new JLabel("학번 : "+id+" / 이름 : "+vo.getStudentName());
 		lblMypage.setBounds(12, 5, 207, 25);
 		pn1.add(lblMypage);
 		
@@ -61,23 +61,23 @@ public class MyPage extends JFrame{
 		getContentPane().add(pn3);
 		pn3.setLayout(null);
 		
-		btnList = new JButton("예약조회");
-		btnList.setBackground(new Color(255, 255, 255));
-		btnList.setFont(new Font("이사만루체 Light", Font.PLAIN, 15));
-		btnList.setBounds(5, 5, 105, 25);
-		pn3.add(btnList);
-		
 		btnUpdate = new JButton("예약수정");
 		btnUpdate.setBackground(new Color(255, 255, 255));
 		btnUpdate.setFont(new Font("이사만루체 Light", Font.PLAIN, 15));
-		btnUpdate.setBounds(122, 5, 105, 25);
+		btnUpdate.setBounds(12, 5, 105, 25);
 		pn3.add(btnUpdate);
 		
 		btnDelete = new JButton("예약취소");
 		btnDelete.setBackground(new Color(255, 255, 255));
 		btnDelete.setFont(new Font("이사만루체 Light", Font.PLAIN, 15));
-		btnDelete.setBounds(239, 5, 105, 25);
+		btnDelete.setBounds(129, 5, 105, 25);
 		pn3.add(btnDelete);
+		
+		btnChangePW = new JButton("비밀번호 변경");
+		btnChangePW.setFont(new Font("이사만루체 Light", Font.PLAIN, 15));
+		btnChangePW.setBackground(Color.WHITE);
+		btnChangePW.setBounds(408, 6, 140, 25);
+		pn3.add(btnChangePW);
 		
 		/* JTable 설계하기 */
 		title = new Vector<>();
@@ -97,13 +97,6 @@ public class MyPage extends JFrame{
 		setLocationRelativeTo(null);
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//--------------------------------------------------------------------
-		
-		// 예약조회
-		btnList.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
 		
 		// 예약수정
 		btnUpdate.addActionListener(new ActionListener() {
@@ -129,9 +122,11 @@ public class MyPage extends JFrame{
 				else {
 					int ans = JOptionPane.showConfirmDialog(null, "예약을 취소하시겠습니까?","",JOptionPane.YES_NO_OPTION);
 					if(ans == 0) {
-	//					res = dao.setDelete(id);
+						res = dao.setDelete(id,row,table);
 						if(res != 0) {
 							JOptionPane.showMessageDialog(null, "예약이 취소되었습니다.");
+							dispose();
+							new MyPage(id);
 						}
 					}
 					else {
@@ -141,6 +136,13 @@ public class MyPage extends JFrame{
 			}
 		});
 		
+		// 비밀번호 변경
+		btnChangePW.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+				new ChangePW(id);
+			}
+		});
 		
 		// 뒤로가기
 		btnBack.addActionListener(new ActionListener() {
@@ -159,17 +161,17 @@ public class MyPage extends JFrame{
 		dtcr.setHorizontalAlignment(SwingConstants.CENTER);
 		table.getTableHeader().setReorderingAllowed(false);
 		TableColumnModel tcm = table.getColumnModel();
-		tcm.getColumn(0).setMaxWidth(200);
+		tcm.getColumn(0).setMaxWidth(400);
 		for(int i=0; i<tcm.getColumnCount(); i++) {
 			tcm.getColumn(i).setCellRenderer(dtcr);
 		}
 	}
 
 	// 상단에 학번, 이름 출력하기
-	private String myInfo(String id) {
+	private ReservationVO myInfo(String id) {
 		ReservationDAO dao = new ReservationDAO();
-		String idName = "";
-		idName = dao.studentList(id);
-		return idName;
+		ReservationVO vo = new ReservationVO();
+		vo = dao.studentList(id);
+		return vo;
 	}
 }

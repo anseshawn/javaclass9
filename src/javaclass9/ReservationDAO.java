@@ -1,10 +1,13 @@
-package javaProject;
+package javaclass9;
 
 import java.sql.SQLException;
 import java.util.Vector;
 
+import javax.swing.JTable;
+
 public class ReservationDAO extends DBConn {
 	ReservationVO vo = null;
+	private String name;
 
 	// 아이디 로그인 시 비밀번호 확인
 	public String matchIDPW(String id) {
@@ -29,9 +32,9 @@ public class ReservationDAO extends DBConn {
 		return res;
 	}
 
-	// 마이페이지 정보 가져오기
-	public String studentList(String id) {
-		String name = "";
+	// 마이페이지 상단 유저 정보 가져오기
+	public ReservationVO studentList(String id) {
+		ReservationVO vo = new ReservationVO();
 		try {
 			sql = "select studentID,studentName from student where studentID = ?";
 			pstmt = conn.prepareStatement(sql);
@@ -41,29 +44,25 @@ public class ReservationDAO extends DBConn {
 				vo = new ReservationVO();
 				vo.setStudentName(rs.getString("studentName"));			
 			}
-			name = vo.getStudentName();
 		} catch (SQLException e) {
 			System.out.println("SQL 오류"+e.getMessage());
 		} finally {
 			rsClose();
 		}
-		return name;
+		return vo;
 	}
 	
 	// 예약하기
 	public int newReservation(String studio, String time, String id) {
 		ReservationVO vo = new ReservationVO();
 		int res = 0;
-		int num = 0;
 		try {
-			num = searchStudioIdx(studio); // 연습실 이름에 따른 idx 받아오기
-			vo.setStudioIdx(num);
+			vo = searchStudioIdx(studio); // 연습실 이름에 따른 idx 받아오기
 			sql = "select reservedDate from reservation where studioIdx = ?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, vo.getStudioIdx());
 			rs = pstmt.executeQuery();
 			if(rs.next()) { // 1.해당 연습실에 예약 내역이 있을 때
-				pstmtClose();
 				if(rs.getString("reservedDate") != time) { // 1-1.예약 시간이 겹치지 않을 때 입력
 					sql = "insert into reservation values(?,?,?)";
 					pstmt = conn.prepareStatement(sql);
@@ -74,7 +73,6 @@ public class ReservationDAO extends DBConn {
 				}
 			}
 			else { // 2. 해당 연습실에 예약 내역이 없을 때
-				pstmtClose();
 				sql = "insert into reservation values(?,?,?)";
 				pstmt = conn.prepareStatement(sql);
 				pstmt.setString(1, id);
@@ -90,6 +88,7 @@ public class ReservationDAO extends DBConn {
 		return res;
 	}
 	
+	
 	// 마이페이지 전체 예약내역 출력
 	public Vector getReserveList(String id) {
 		Vector vData = new Vector<>();
@@ -100,7 +99,7 @@ public class ReservationDAO extends DBConn {
 			rs = pstmt.executeQuery();
 			while(rs.next()) {
 				Vector vo = new Vector<>();
-				String name = searchStudioName(rs.getInt("studioIdx"));
+				name = searchStudioName(rs.getInt("studioIdx")); // 연습실 idx에 따른 이름
 				vo.add(name);
 				vo.add(rs.getString("reservedDate").substring(0,10));
 				vo.add(rs.getString("reservedDate").substring(11,16));
@@ -118,11 +117,9 @@ public class ReservationDAO extends DBConn {
 	// 예약내역 수정하기
 	public int setUpdate(String id, String studio, String reservedDateTime) {
 		int res = 0;
-		int num = 0;
 		ReservationVO vo = new ReservationVO();
 		try {
-			num = searchStudioIdx(studio); // 연습실 이름에 따른 idx 받아오기
-			vo.setStudioIdx(num);
+			vo = searchStudioIdx(studio); // 연습실 이름에 따른 idx 받아오기
 			sql = "Update reservation set reservedDate = ? where studentID = ? and studioIdx = ?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, reservedDateTime);
@@ -138,42 +135,89 @@ public class ReservationDAO extends DBConn {
 	}
 	
 	// 예약내역 취소하기
-//	public int setDelete(String id) {
-//		int res = 0;
-//		try {
-//			
-//		} catch (SQLException e) {
-//			System.out.println("SQL 오류"+e.getMessage());
-//		} finally {
-//			pstmtClose();
-//		}
-//		return res;
-//	}
-//	
-	
-//------------------------------------부가 메소드---------------------------------
-	// 연습실 이름에 따른 idx 찾기
-	private int searchStudioIdx(String studio) {
-		int num = 0;
+	public int setDelete(String id, int row, JTable table) {
+		int res = 0;
+		String reservedDateTime = table.getValueAt(row, 1)+" "+table.getValueAt(row, 2);
 		try {
-			sql = "select studioIdx from studio where studioName = ?";
+			sql = "delete from reservation where studentID = ? and reservedDate = ?";
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, studio);
+			pstmt.setString(1, id);
+			pstmt.setString(2, reservedDateTime);
+			res = pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println("SQL 오류"+e.getMessage());
+		} finally {
+			pstmtClose();
+		}
+		return res;
+	}
+	
+	// 선택한 연습실 예약현황 출력하기...?
+	public Vector getStudioList(String studio) {
+		ReservationVO vo = new ReservationVO();
+		Vector vData = new Vector<>();
+		try {			
+			vo = searchStudioIdx(studio);
+			sql = "select r.* from reservation r, studio s where s.studioIdx = r.studioIdx and s.studioIdx = ? order by reservedDate;";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, vo.getStudioIdx());
 			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				num = rs.getInt("studioIdx");
+			while(rs.next()) {
+				Vector vo2 = new Vector<>();
+				vo2.add(rs.getString("reservedDate").substring(0,10));
+				vo2.add(rs.getString("reservedDate").substring(11,16));
+				
+				vData.add(vo2);
 			}
 		} catch (SQLException e) {
 			System.out.println("SQL 오류"+e.getMessage());
 		} finally {
 			rsClose();
 		}
-		return num;
+		return vData;
+	}
+	
+	// 마이페이지-비밀번호 변경하기
+	public int changePW(String id, String pw) {
+		int res = 0;
+		try {
+			sql = "update student set studentPW = ? where studentID = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, pw);
+			pstmt.setString(2, id);
+			res = pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println("SQL 오류"+e.getMessage());
+		} finally {
+			pstmtClose();
+		}
+		return res;
+	}
+
+	
+//------------------------------------부가 메소드---------------------------------
+	// 연습실 이름에 따른 idx 찾기
+	private ReservationVO searchStudioIdx(String studio) {
+		ReservationVO vo = new ReservationVO();
+		try {
+			sql = "select studioIdx from studio where studioName = ?";
+			pstmt2 = conn.prepareStatement(sql);
+			pstmt2.setString(1, studio);
+			rs2 = pstmt2.executeQuery();
+			if(rs2.next()) {
+				vo.setStudioIdx(rs2.getInt("studioIdx"));
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL 오류"+e.getMessage());
+		} finally {
+			rs2Close();
+		}
+		return vo;
 	}
 	
 	//연습실 idx에 따른 이름 찾기
 	private String searchStudioName(int studioIdx) {
-		String name = "";
+		name = "";
 		try {
 			sql = "select studioName from studio where studioIDx = ?";
 			pstmt2 = conn.prepareStatement(sql);
@@ -191,21 +235,21 @@ public class ReservationDAO extends DBConn {
 	}
 
 	// 오늘 날짜 계산하여 콤보박스에 넣기
-	public String getToday() {
-		String todayDate = "";
+	public ReservationVO getToday() {
+		ReservationVO vo = new ReservationVO();
 		try {
 			sql="select concat(year(today),'-',month(today),'-',day(today)) as cbToday from calendar";
 			pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
-				todayDate = rs.getString("cbToday");
+				vo.setCbToday(rs.getString("cbToday"));
 			}
 		} catch (SQLException e) {
 			System.out.println("SQL 오류"+e.getMessage());
 		} finally {
 			rsClose();
 		}
-		return todayDate;
+		return vo;
 	}
 
 	// 예약 수정 시 날짜 불러와서 콤보박스에 넣기
@@ -251,5 +295,4 @@ public class ReservationDAO extends DBConn {
 		}
 		return days;
 	}
-
 }
