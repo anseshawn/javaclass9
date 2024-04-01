@@ -21,7 +21,7 @@ import java.awt.Color;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-public class ReservationMain extends JFrame {
+public class AdminReservationMain extends JFrame {
 	private JButton btnLogout,btnMyPage,btnReserve;
 	private JLabel lblTitle;
 	private JScrollPane scrollPane;
@@ -32,8 +32,8 @@ public class ReservationMain extends JFrame {
 	private DefaultTableModel dtm;
 	private DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
 	
-	public ReservationMain(String id) {
-		super("메인 화면");
+	public AdminReservationMain(String id) {
+		super("관리자 메인 화면");
 		setSize(600,450);
 		getContentPane().setLayout(null);
 		
@@ -48,7 +48,7 @@ public class ReservationMain extends JFrame {
 		btnLogout.setBounds(443, 10, 105, 30);
 		pn1.add(btnLogout);
 		
-		btnMyPage = new JButton("마이페이지");
+		btnMyPage = new JButton("학생 관리");
 		btnMyPage.setBackground(new Color(255, 255, 255));
 		btnMyPage.setFont(new Font("이사만루체 Light", Font.PLAIN, 14));
 		btnMyPage.setBounds(12, 10, 105, 30);
@@ -82,7 +82,7 @@ public class ReservationMain extends JFrame {
 		title.add("연습실");
 		title.add("날짜");
 		title.add("시간");
-		title.add("예약자");
+		title.add("예약자(학번)");
 		
 		vData = dao.getAllList();
 		dtm = new DefaultTableModel(vData,title);
@@ -112,11 +112,11 @@ public class ReservationMain extends JFrame {
 			}
 		});
 		
-		// 마이페이지
+		// 예약 관리
 		btnMyPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
-				new MyPage(id);
+				new AdminMyPage(id);
 			}
 		});
 		

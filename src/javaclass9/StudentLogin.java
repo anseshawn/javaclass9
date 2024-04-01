@@ -14,6 +14,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
+import java.awt.Color;
 
 public class StudentLogin extends JFrame {
 	ReservationDAO dao = new ReservationDAO();
@@ -56,6 +57,7 @@ public class StudentLogin extends JFrame {
 		pn1.add(txtPassword);
 		
 		btnNewButton = new JButton("Login");
+		btnNewButton.setBackground(new Color(255, 255, 255));
 		btnNewButton.setFont(new Font("이사만루체 Medium", Font.PLAIN, 12));
 		btnNewButton.setBounds(200, 35, 72, 40);
 		pn1.add(btnNewButton);
@@ -89,7 +91,11 @@ public class StudentLogin extends JFrame {
 		String id = txtStudentID.getText().trim();
 		String pw = txtPassword.getText().trim();
 		vo = dao.studentList(id);
-		if(vo.getStudentName() != null) {
+		if(id.equals("admin") && pw.equals("1234")) {
+			dispose();
+			new AdminReservationMain(id);
+		}
+		else if(vo.getStudentName() != null) {
 			if(!Pattern.matches("^[0-9]{9}$", id) && !id.equals("admin")) {
 				JOptionPane.showMessageDialog(null, "학번을 다시 확인해주세요.");
 				txtStudentID.requestFocus();

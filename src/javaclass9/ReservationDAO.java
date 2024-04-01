@@ -42,7 +42,8 @@ public class ReservationDAO extends DBConn {
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				vo = new ReservationVO();
-				vo.setStudentName(rs.getString("studentName"));			
+				vo.setStudentName(rs.getString("studentName"));		
+				vo.setStudentID(rs.getString("studentID"));
 			}
 		} catch (SQLException e) {
 			System.out.println("SQL 오류"+e.getMessage());
@@ -58,18 +59,23 @@ public class ReservationDAO extends DBConn {
 		int res = 0;
 		try {
 			vo = searchStudioIdx(studio); // 연습실 이름에 따른 idx 받아오기
-			sql = "select reservedDate from reservation where studioIdx = ?";
+			sql = "select concat(year(reservedDate),'-',month(reservedDate),'-',day(reservedDate),' ',hour(reservedDate),':',minute(reservedDate)) as reserved from reservation where studioIdx = ?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, vo.getStudioIdx());
 			rs = pstmt.executeQuery();
 			if(rs.next()) { // 1.해당 연습실에 예약 내역이 있을 때
-				if(rs.getString("reservedDate") != time) { // 1-1.예약 시간이 겹치지 않을 때 입력
+				vo.setReservedTime(rs.getString("reserved"));
+				if(!vo.getReservedTime().equals(time)) { // 1-1.예약 시간이 겹치지 않을 때 입력
 					sql = "insert into reservation values(?,?,?)";
 					pstmt = conn.prepareStatement(sql);
 					pstmt.setString(1, id);
 					pstmt.setInt(2, vo.getStudioIdx());
 					pstmt.setString(3, time);
-					res = pstmt.executeUpdate();
+					res = pstmt.executeUpdate();		
+				}
+				else {
+					res = 0;
+					vo.setReservedTime(null);
 				}
 			}
 			else { // 2. 해당 연습실에 예약 내역이 없을 때
@@ -152,13 +158,13 @@ public class ReservationDAO extends DBConn {
 		return res;
 	}
 	
-	// 선택한 연습실 예약현황 출력하기...?
+	// 선택한 연습실 예약현황 출력하기
 	public Vector getStudioList(String studio) {
 		ReservationVO vo = new ReservationVO();
 		Vector vData = new Vector<>();
 		try {			
 			vo = searchStudioIdx(studio);
-			sql = "select r.* from reservation r, studio s where s.studioIdx = r.studioIdx and s.studioIdx = ? order by reservedDate;";
+			sql = "select r.* from reservation r, studio s where s.studioIdx = r.studioIdx and s.studioIdx = ? order by reservedDate";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, vo.getStudioIdx());
 			rs = pstmt.executeQuery();
@@ -194,6 +200,67 @@ public class ReservationDAO extends DBConn {
 		return res;
 	}
 
+	// 전체 예약 현황 출력
+	public Vector getAllList() {
+		Vector vData = new Vector<>();
+		try {			
+			sql = "select r.*,s.studioName from reservation r, studio s where s.studioIdx = r.studioIdx order by reservedDate";
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				Vector vo = new Vector<>();
+				vo.add(rs.getString("studioName"));
+				vo.add(rs.getString("reservedDate").substring(0,10));
+				vo.add(rs.getString("reservedDate").substring(11,16));
+				vo.add(rs.getString("studentID"));
+				
+				vData.add(vo);
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL 오류"+e.getMessage());
+		} finally {
+			rsClose();
+		}
+		return vData;
+	}
+		
+	// 전체 학생정보 출력
+	public Vector getStudentList() {
+		Vector vData = new Vector<>();
+		try {
+			sql = "select studentID,studentName from student order by studentID";
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				Vector vo = new Vector<>();
+				vo.add(rs.getString("studentName"));
+				vo.add(rs.getString("studentID"));
+				vData.add(vo);
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL 오류"+e.getMessage());
+		} finally {
+			rsClose();
+		}
+		return vData;
+	}
+	
+	// 학생정보 수정
+	public int setStudentInfo(ReservationVO vo) {
+		int res = 0;
+		try {
+			sql = "update student set studentName=? where studentID=?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, vo.getStudentName());
+			pstmt.setString(2, vo.getStudentID());
+			res = pstmt.executeUpdate();
+		} catch (SQLException e) {
+			System.out.println("SQL 오류"+e.getMessage());
+		} finally {
+			pstmtClose();
+		}
+		return res;
+	}
 	
 //------------------------------------부가 메소드---------------------------------
 	// 연습실 이름에 따른 idx 찾기
@@ -238,7 +305,7 @@ public class ReservationDAO extends DBConn {
 	public ReservationVO getToday() {
 		ReservationVO vo = new ReservationVO();
 		try {
-			sql="select concat(year(today),'-',month(today),'-',day(today)) as cbToday from calendar";
+			sql="select concat(year(now()),'-',month(now()),'-',day(now())) as cbToday";
 			pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
@@ -279,14 +346,12 @@ public class ReservationDAO extends DBConn {
 		int days = 0;
 		try {
 			String date = cbYY+"-"+cbMM+"-"+1;
-			System.out.println(date);
 			sql = "select day(last_day(?)) as lastDay";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, date);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				days = rs.getInt("lastDay");
-				System.out.println(days);
 			}
 		} catch (SQLException e) {
 			System.out.println("SQL 오류"+e.getMessage());
@@ -295,4 +360,5 @@ public class ReservationDAO extends DBConn {
 		}
 		return days;
 	}
+
 }

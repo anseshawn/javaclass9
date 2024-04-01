@@ -12,10 +12,11 @@ drop table student;
 
 insert into student values('202401001','1234','홍길동');
 insert into student values('admin','1234','관리자');
--- 등록할것...
-insert into student values('202402123','1234','김말숙');
+insert into student values('202402002','1234','김말숙');
 insert into student values('202403290','1234','안소은');
 insert into student values('202401010','1234','강서현');
+insert into student values('202402123','1234','이기자');
+insert into student values('202402456','1234','소나무');
 
 select * from student;
 
@@ -59,6 +60,8 @@ delete from reservation;
 select date_format(reservedDate,'%y-%m-%d') as selectDate from reservation;
 select substring(reservedDate,12,5) as selectTime from reservation;
 
+select r.* from reservation r, studio s where s.studioIdx = r.studioIdx and s.studioIdx = * order by reservedDate
+
 
 select reservedDate from reservation where studioIdx = 1;
 
@@ -70,6 +73,7 @@ desc calendar;
 drop table calendar;
 insert into calendar values(default);
 select * from calendar;
+delete from calendar;
 
 
 -- 함수 테스트
@@ -78,7 +82,11 @@ select day(last_day(cal)) as lastDay from calendar;		/* 달의 마지막 일자 
 
 select concat(year(now()),'-',month(now()),'-',day(now()));
 
+select concat(year(now()),'-',month(now()),'-',day(now())) as cbToday
+
 select day(last_day('2024-2-1')) as lastDay;
 
 select r.* from reservation r, student s where s.studentID = r.studentID and s.studentID = '202401001' order by reservedDate;
 select concat(year(reservedDate),'-',month(reservedDate),'-',day(reservedDate)) as cbreservedDate from reservation;
+
+select concat(year(reservedDate),'-',month(reservedDate),'-',day(reservedDate),' ',hour(reservedDate),':',minute(reservedDate),':',second(reservedDate)) as reserved from reservation where studioIdx = 1

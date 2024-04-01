@@ -5,8 +5,13 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
+
 import java.awt.Font;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -17,24 +22,32 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
+import java.util.Vector;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 
 public class ReservationUpdate extends JFrame{
 	private final ButtonGroup buttonGroupStudio = new ButtonGroup();
 	private final ButtonGroup buttonGroupTime = new ButtonGroup();
-	private JLabel lblTitle,lblStudio,lblDate,lblTime;
+	private JLabel lblTitle,lblStudio,lblDate,lblTime,lblStatus;
 	private JRadioButton rbPianoA,rbGuitarA,rbDrumA,rbPianoB,rbGuitarB,rbDrumB,rb17,rb18,rb19,rb20,rb21,rb22;
 	private JButton btnCancel,btnSubmit;
 	private JComboBox cbYY,cbMM,cbDD;
+	private JScrollPane scrollPane;
+	private JTable table;
+	private Vector title,vData;
+	private DefaultTableModel dtm;
+	DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
 	
 	ReservationDAO dao = new ReservationDAO();
 	ReservationVO vo = null;
-	int res=0, check=0;
-	String reservedDate="", studio="", time="";
+	private int res=0, days = 0;
+	private String reservedDate="", studio="", time="";
 	
 	public ReservationUpdate(String id, int row, JTable table) {
 		super("예약하기");
@@ -42,15 +55,21 @@ public class ReservationUpdate extends JFrame{
 		getContentPane().setLayout(null);
 		
 		JPanel pn1 = new JPanel();
-		pn1.setBounds(12, 10, 560, 50);
+		pn1.setBounds(12, 10, 560, 60);
 		getContentPane().add(pn1);
 		pn1.setLayout(null);
 		
-		lblTitle = new JLabel("예 약 하 기");
+		lblTitle = new JLabel("예 약 수 정");
 		lblTitle.setFont(new Font("이사만루체 Bold", Font.PLAIN, 20));
 		lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		lblTitle.setBounds(12, 10, 536, 30);
 		pn1.add(lblTitle);
+		
+		lblStatus = new JLabel("예 약 현 황");
+		lblStatus.setBounds(0, 30, 193, 30);
+		pn1.add(lblStatus);
+		lblStatus.setFont(new Font("이사만루체 Medium", Font.PLAIN, 15));
+		lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		JPanel pn2 = new JPanel();
 		pn2.setBounds(12, 70, 193, 281);
@@ -125,7 +144,7 @@ public class ReservationUpdate extends JFrame{
 		cbYY.setBounds(109, 111, 65, 25);
 		pn3.add(cbYY);
 		
-		// 월, 일 체크박스에 입력
+		// 월 체크박스에 입력
 		String[] mm = new String[12];	
 		for(int i=0; i<mm.length; i++) {
 			mm[i] = (i+1)+"";
@@ -135,14 +154,27 @@ public class ReservationUpdate extends JFrame{
 		cbMM.setBounds(184, 111, 50, 25);
 		pn3.add(cbMM);		
 		
-		int days = 0;
-		//days = dayCalculator(cbMM.getSelectedItem().toString());
-		days = dao.getLastDay(cbYY.getSelectedItem()+"",cbMM.getSelectedItem()+"");
-		String[] dd = new String[days];
-		for(int i=0; i<dd.length; i++) {
-			dd[i] = (i+1)+"";
-		}
-		cbDD = new JComboBox(dd);
+		cbDD = new JComboBox();
+		cbMM.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String monthStr = cbMM.getSelectedItem().toString();
+				days = dao.getLastDay(cbYY.getSelectedItem()+"",monthStr);				
+				cbDD.removeAllItems();
+				for(int i=0; i<days; i++) {
+					cbDD.addItem(i+1);			
+				}				
+			}
+		});
+		
+		// 콤보상자 디폴트 값을 예약한 날짜로
+		reservedDate = table.getValueAt(row, 1).toString();
+		String date = dao.getReservedDate(reservedDate);
+		String[] ymds = date.split("-");
+		cbYY.setSelectedItem(ymds[0]);
+		cbMM.setSelectedItem(ymds[1]);
+		cbDD.setSelectedItem(ymds[2]);
+		
 		cbDD.setFont(new Font("이사만루체 Light", Font.PLAIN, 12));
 		cbDD.setBounds(244, 111, 50, 25);
 		pn3.add(cbDD);
@@ -241,13 +273,61 @@ public class ReservationUpdate extends JFrame{
 		btnSubmit.setEnabled(true);			
 		pn4.add(btnSubmit);
 		
-		// 콤보상자 디폴트 값을 예약한 날짜로
-		reservedDate = table.getValueAt(row, 1).toString();
-		String date = dao.getReservedDate(reservedDate);
-		String[] ymds = date.split("-");
-		cbYY.setSelectedItem(ymds[0]);
-		cbMM.setSelectedItem(ymds[1]);
-		cbDD.setSelectedItem(ymds[2]);
+		// 선택한 연습실 예약현황 출력하기
+		title = new Vector<>();
+		title.add("날짜");
+		title.add("시간");
+		
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(0, 30, 193, 251);
+		rbPianoA.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				studio = getSelectedStudio();
+				pn2.add(scrollPane);
+			}
+		});
+		
+		rbPianoB.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				studio = getSelectedStudio();
+				pn2.add(scrollPane);
+			}
+		});
+		
+		rbGuitarA.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				studio = getSelectedStudio();
+				pn2.add(scrollPane);
+			}
+		});
+		
+		rbGuitarB.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				studio = getSelectedStudio();
+				pn2.add(scrollPane);
+			}
+		});
+		
+		rbDrumA.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				studio = getSelectedStudio();
+				pn2.add(scrollPane);
+			}
+		});
+		
+		rbDrumB.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				studio = getSelectedStudio();
+				pn2.add(scrollPane);
+			}
+		});
+		
 		
 		//--------------------------------------------------------------------
 		setLocationRelativeTo(null);
@@ -258,19 +338,8 @@ public class ReservationUpdate extends JFrame{
 		// 예약 수정하기 버튼
 		btnSubmit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(rbPianoA.isSelected()) studio = "피아노A";
-				else if(rbPianoB.isSelected()) studio = "피아노B";
-				else if(rbGuitarA.isSelected()) studio = "기타A";
-				else if(rbGuitarB.isSelected()) studio = "기타B";
-				else if(rbDrumA.isSelected()) studio = "드럼A";
-				else if(rbDrumB.isSelected()) studio = "드럼B";
-				
-				if(rb17.isSelected()) time = "17:00:00";
-				else if(rb18.isSelected()) time = "18:00:00";
-				else if(rb19.isSelected()) time = "19:00:00";
-				else if(rb20.isSelected()) time = "20:00:00";
-				else if(rb21.isSelected()) time = "21:00:00";
-				else if(rb22.isSelected()) time = "22:00:00";
+				time = getSelectedTime();
+				studio = getSelectedStudio();
 				
 				String reservedDate = cbYY.getSelectedItem()+"-"+cbMM.getSelectedItem()+"-"+cbDD.getSelectedItem();
 				String reservedDateTime = reservedDate+" "+time;
@@ -306,34 +375,54 @@ public class ReservationUpdate extends JFrame{
 		//--------------------------------------------------------------------
 		setVisible(true);
 	}
+	// JTable 속성
+	private void JTableSetting() {
+		dtcr.setHorizontalAlignment(SwingConstants.CENTER);
+		table.getTableHeader().setReorderingAllowed(false);
+		TableColumnModel tcm = table.getColumnModel();
+		tcm.getColumn(0).setMaxWidth(80);
+		for(int i=0; i<tcm.getColumnCount(); i++) {
+			tcm.getColumn(i).setCellRenderer(dtcr);
+		}
+	}
+	
+	// 라디오버튼 클릭에 따라 연습실 이름 부여
+	protected String getSelectedStudio() {
+		String studio = "";
+		if(rbPianoA.isSelected()) studio = "피아노A";
+		else if(rbPianoB.isSelected()) studio = "피아노B";
+		else if(rbGuitarA.isSelected()) studio = "기타A";
+		else if(rbGuitarB.isSelected()) studio = "기타B";
+		else if(rbDrumA.isSelected()) studio = "드럼A";
+		else if(rbDrumB.isSelected()) studio = "드럼B";
+		
+		// 예약현황 출력
+		vData = dao.getStudioList(studio);
+		dtm = new DefaultTableModel(vData,title);
+		table = new JTable(dtm);
+		TableColumnModel tcm = table.getColumnModel();
+		dtcr.setHorizontalAlignment(SwingConstants.CENTER);
+		tcm.getColumn(0).setCellRenderer(dtcr);
+		tcm.getColumn(1).setCellRenderer(dtcr);
+		scrollPane = new JScrollPane(table);
+		scrollPane.setBounds(0, 0, 193, 281);
+		
+		return studio;
+	}
+	
+	// 라디오버튼 클릭에 따라 시간 부여
+	protected String getSelectedTime() {
+		String time = "";
+		if(rb17.isSelected()) time = "17:0";
+		else if(rb18.isSelected()) time = "18:0";
+		else if(rb19.isSelected()) time = "19:0";
+		else if(rb20.isSelected()) time = "20:0";
+		else if(rb21.isSelected()) time = "21:0";
+		else if(rb22.isSelected()) time = "22:0";
+		return time;
+	}
 	
 	
-// 예약 내역이 있으면 라디오버튼 비활성화하기...?
-//	private int checkStatus(String id) {
-//		if(rbPianoA.isSelected()) studio = "피아노A";
-//		else if(rbPianoB.isSelected()) studio = "피아노B";
-//		else if(rbGuitarA.isSelected()) studio = "기타A";
-//		else if(rbGuitarB.isSelected()) studio = "기타B";
-//		else if(rbDrumA.isSelected()) studio = "드럼A";
-//		else if(rbDrumB.isSelected()) studio = "드럼B";
-//		
-//		if(rb17.isSelected()) time = "17:00:00";
-//		else if(rb18.isSelected()) time = "18:00:00";
-//		else if(rb19.isSelected()) time = "19:00:00";
-//		else if(rb20.isSelected()) time = "20:00:00";
-//		else if(rb21.isSelected()) time = "21:00:00";
-//		else if(rb22.isSelected()) time = "22:00:00";
-//		
-//		String reservedDate = cbYY.getSelectedItem()+"-"+cbMM.getSelectedItem()+"-"+cbDD.getSelectedItem();
-//		String reservedDateTime = reservedDate+" "+time;
-//		
-//		check = dao.newReservation(studio,reservedDateTime,id);
-//		
-//		return check;
-//	}
-
-
-
 	// 라디오버튼 체크 완료 되었는지 확인
 	private int checkAllBtn() {
 		int res = 0;
@@ -349,16 +438,4 @@ public class ReservationUpdate extends JFrame{
 		else res = 0;
 		return res;
 	}
-
-	// 월에 따른 일 생성
-//	private int dayCalculator(String cbMM) {
-//		int month, days = 0;
-//		month = Integer.parseInt(cbMM);
-//		if(month <= 7 && month % 2 != 0)days = 31;
-//		else if(month > 7 && month % 2 == 0)days = 31;
-//		else if(month == 2)days = 29;
-//		else days = 30;
-//		return days;
-//	}
-	
 }

@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
+import java.awt.Color;
 @SuppressWarnings({ "deprecation", "serial" })
 public class ChangePW extends JFrame{
 	private JLabel lblNewPW,lblConfirmPW;
@@ -28,7 +29,7 @@ public class ChangePW extends JFrame{
 	int res = 0, ans = 0;
 	String pw = "";
 	
-	public ChangePW(String id) {
+	public ChangePW(String id, String admin) {
 		super("비밀번호 변경");
 		setSize(300, 180);
 		
@@ -60,14 +61,25 @@ public class ChangePW extends JFrame{
 		txtConfirmPW.setColumns(10);
 		
 		btnSubmit = new JButton("확인");
+		btnSubmit.setBackground(new Color(255, 255, 255));
 		btnSubmit.setFont(new Font("이사만루체 Medium", Font.PLAIN, 12));
 		btnSubmit.setBounds(68, 101, 72, 30);
 		pn1.add(btnSubmit);
 		
 		btnCancel = new JButton("취소");
+		btnCancel.setBackground(new Color(255, 255, 255));
 		btnCancel.setFont(new Font("이사만루체 Medium", Font.PLAIN, 12));
 		btnCancel.setBounds(142, 101, 72, 30);
 		pn1.add(btnCancel);
+		
+		if(admin.equals("admin")) {
+			txtNewPW.setText("123456789");
+			txtConfirmPW.setText("123456789");
+		}
+		else {
+			txtNewPW.setText("");
+			txtConfirmPW.setText("");
+		}
 		
 		//--------------------------------------------------------------------
 		setLocationRelativeTo(null);
@@ -78,28 +90,26 @@ public class ChangePW extends JFrame{
 		// 확인버튼
 		btnSubmit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				confirmBtn(id);
+				confirmBtn(id,admin);
 			}
 		});
 		btnSubmit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				confirmBtn(id);
+				confirmBtn(id,admin);
 			}
 		});
 		
 		// 취소버튼
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				dispose();
-				new MyPage(id);
+				cancelBtn(id,admin);
 			}
 		});
 		btnCancel.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				dispose();
-				new MyPage(id);
+				cancelBtn(id,admin);
 			}
 		});
 		
@@ -107,7 +117,17 @@ public class ChangePW extends JFrame{
 		setVisible(true);
 	}
 
-	protected void confirmBtn(String id) {
+	protected void cancelBtn(String id, String admin) {
+		dispose();
+		if(admin.equals("admin") || id.equals("admin")) {
+			new AdminMyPage("admin");
+		}
+		else {
+			new MyPage(id);										
+		}
+	}
+
+	protected void confirmBtn(String id, String admin) {
 		ans = JOptionPane.showConfirmDialog(null, "비밀번호를 변경하시겠습니까?","",JOptionPane.YES_NO_OPTION);
 		if(ans == 0) {
 			if(!txtNewPW.getText().trim().equals(txtConfirmPW.getText().trim())) {
@@ -120,7 +140,12 @@ public class ChangePW extends JFrame{
 				res = dao.changePW(id,pw);
 				JOptionPane.showMessageDialog(null, "비밀번호가 변경되었습니다.");
 				dispose();
-				new MyPage(id);
+				if(admin.equals("admin") || id.equals("admin")) {
+					new AdminMyPage("admin");
+				}
+				else {
+					new MyPage(id);										
+				}
 			}
 		}
 		else {
