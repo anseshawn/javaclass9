@@ -17,6 +17,7 @@ import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+@SuppressWarnings({ "unchecked", "serial","rawtypes" })
 public class MyPage extends JFrame{
 	private JButton btnBack,btnUpdate,btnDelete,btnChangePW;
 	private JScrollPane scrollPane;

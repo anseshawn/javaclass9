@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import javax.swing.JTable;
 
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class ReservationDAO extends DBConn {
 	ReservationVO vo = null;
 	private String name;
@@ -121,17 +122,40 @@ public class ReservationDAO extends DBConn {
 	}
 	
 	// 예약내역 수정하기
-	public int setUpdate(String id, String studio, String reservedDateTime) {
+	public int setUpdate(String id, String studio, String reservedDateTime, String originDateTime) {
 		int res = 0;
 		ReservationVO vo = new ReservationVO();
 		try {
 			vo = searchStudioIdx(studio); // 연습실 이름에 따른 idx 받아오기
-			sql = "Update reservation set reservedDate = ? where studentID = ? and studioIdx = ?";
+			sql = "select concat(year(reservedDate),'-',month(reservedDate),'-',day(reservedDate),' ',hour(reservedDate),':',minute(reservedDate)) as reserved from reservation where studioIdx = ?";
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, reservedDateTime);
-			pstmt.setString(2, id);
-			pstmt.setInt(3, vo.getStudioIdx());
-			res = pstmt.executeUpdate();
+			pstmt.setInt(1, vo.getStudioIdx());
+			rs = pstmt.executeQuery();
+			if(rs.next()) { // 해당 연습실에 예약 내역 있을 때 
+				vo.setReservedTime(rs.getString("reserved"));
+				if(!vo.getReservedTime().equals(reservedDateTime)) {
+					sql = "Update reservation set reservedDate = ? where studentID = ? and studioIdx = ? and reservedDate = ?";
+					pstmt = conn.prepareStatement(sql);
+					pstmt.setString(1, reservedDateTime);
+					pstmt.setString(2, id);
+					pstmt.setInt(3, vo.getStudioIdx());		
+					pstmt.setString(4, originDateTime);		
+					res = pstmt.executeUpdate();
+				}
+				else {
+					res = 0;
+					vo.setReservedTime(null);
+				}
+			}
+			else { // 해당 연습실에 예약 내역이 없을 때
+				sql = "Update reservation set reservedDate = ? where studentID = ? and studioIdx = ? and reservedDate = ?";
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, reservedDateTime);
+				pstmt.setString(2, id);
+				pstmt.setInt(3, vo.getStudioIdx());
+				pstmt.setString(4, originDateTime);				
+				res = pstmt.executeUpdate();
+			}			
 		} catch (SQLException e) {
 			System.out.println("SQL 오류"+e.getMessage());
 		} finally {

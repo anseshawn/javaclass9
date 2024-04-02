@@ -310,7 +310,12 @@ public class ReservationStudio extends JFrame{
 				if(res != 0) {
 					JOptionPane.showMessageDialog(null, "예약이 완료되었습니다.");
 					dispose();
-					new ReservationMain(id);
+					if(id.equals("admin")) {
+						new AdminReservationMain(id);
+					}
+					else {
+						new ReservationMain(id);
+					}
 				}
 				else {
 					JOptionPane.showMessageDialog(null, "예약에 실패했습니다. 다시 확인해주세요.");
@@ -324,14 +329,24 @@ public class ReservationStudio extends JFrame{
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
-				new ReservationMain(id);
+				if(id.equals("admin")) {
+					new AdminReservationMain(id);
+				}
+				else {
+					new ReservationMain(id);
+				}
 			}
 		});
 		btnCancel.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				dispose();
-				new ReservationMain(id);
+				if(id.equals("admin")) {
+					new AdminReservationMain(id);
+				}
+				else {
+					new ReservationMain(id);
+				}
 			}
 		});
 				

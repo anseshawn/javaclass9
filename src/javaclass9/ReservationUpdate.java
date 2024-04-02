@@ -340,19 +340,36 @@ public class ReservationUpdate extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				time = getSelectedTime();
 				studio = getSelectedStudio();
-				
 				String reservedDate = cbYY.getSelectedItem()+"-"+cbMM.getSelectedItem()+"-"+cbDD.getSelectedItem();
 				String reservedDateTime = reservedDate+" "+time;
-				res = dao.setUpdate(id,studio,reservedDateTime);
-				if(res != 0) {
-					JOptionPane.showMessageDialog(null, "수정이 완료되었습니다.");
-					dispose();
-					new MyPage(id);
+				String originDateTime = date+" "+table.getValueAt(row, 2).toString().substring(0,4);
+				
+				if(id.equals("admin")) {
+					String studentID = table.getValueAt(row, 3).toString();
+					res = dao.setUpdate(studentID, studio, reservedDateTime,originDateTime);
+					if(res != 0) {
+						JOptionPane.showMessageDialog(null, "수정이 완료되었습니다.");
+						dispose();
+						new AdminReservationMain(id);
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "예약 수정에 실패했습니다. 다시 확인해주세요.");
+						buttonGroupStudio.clearSelection();
+						buttonGroupTime.clearSelection();
+					}
 				}
 				else {
-					JOptionPane.showMessageDialog(null, "예약 수정에 실패했습니다. 다시 확인해주세요.");
-					buttonGroupStudio.clearSelection();
-					buttonGroupTime.clearSelection();
+					res = dao.setUpdate(id,studio,reservedDateTime,originDateTime);
+					if(res != 0) {
+						JOptionPane.showMessageDialog(null, "수정이 완료되었습니다.");
+						dispose();
+						new MyPage(id);						
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "예약 수정에 실패했습니다. 다시 확인해주세요.");
+						buttonGroupStudio.clearSelection();
+						buttonGroupTime.clearSelection();
+					}
 				}
 			}
 		});
@@ -361,14 +378,24 @@ public class ReservationUpdate extends JFrame{
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
-				new MyPage(id);
+				if(id.equals("admin")) {
+					new AdminReservationMain(id);
+				}
+				else {
+					new MyPage(id);						
+				}
 			}
 		});
 		btnCancel.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				dispose();
-				new MyPage(id);
+				if(id.equals("admin")) {
+					new AdminReservationMain(id);
+				}
+				else {
+					new MyPage(id);						
+				}
 			}
 		});
 		
@@ -424,18 +451,18 @@ public class ReservationUpdate extends JFrame{
 	
 	
 	// 라디오버튼 체크 완료 되었는지 확인
-	private int checkAllBtn() {
-		int res = 0;
-		if(rbPianoA.isSelected() || rbPianoB.isSelected()
-				|| rbGuitarA.isSelected() || rbGuitarB.isSelected()
-				|| rbDrumA.isSelected() || rbDrumB.isSelected()) {
-			if(rb17.isSelected() || rb18.isSelected() || rb19.isSelected()
-					|| rb20.isSelected() || rb21.isSelected() || rb22.isSelected()) {
-				res = 1;
-			}
-			else res = 0;
-		}
-		else res = 0;
-		return res;
-	}
+//	private int checkAllBtn() {
+//		int res = 0;
+//		if(rbPianoA.isSelected() || rbPianoB.isSelected()
+//				|| rbGuitarA.isSelected() || rbGuitarB.isSelected()
+//				|| rbDrumA.isSelected() || rbDrumB.isSelected()) {
+//			if(rb17.isSelected() || rb18.isSelected() || rb19.isSelected()
+//					|| rb20.isSelected() || rb21.isSelected() || rb22.isSelected()) {
+//				res = 1;
+//			}
+//			else res = 0;
+//		}
+//		else res = 0;
+//		return res;
+//	}
 }

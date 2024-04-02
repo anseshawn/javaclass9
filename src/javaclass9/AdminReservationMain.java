@@ -22,7 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 public class AdminReservationMain extends JFrame {
-	private JButton btnLogout,btnMyPage,btnReserve;
+	private JButton btnLogout,btnMyPage,btnReserve,btnUpdate,btnDelete;
 	private JLabel lblTitle;
 	private JScrollPane scrollPane;
 	
@@ -31,6 +31,8 @@ public class AdminReservationMain extends JFrame {
 	private Vector title,vData;
 	private DefaultTableModel dtm;
 	private DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
+
+	private int res = 0;
 	
 	public AdminReservationMain(String id) {
 		super("관리자 메인 화면");
@@ -76,6 +78,18 @@ public class AdminReservationMain extends JFrame {
 		btnReserve.setBounds(12, 10, 97, 30);
 		pn3.add(btnReserve);
 		
+		btnUpdate = new JButton("예약수정");
+		btnUpdate.setFont(new Font("이사만루체 Light", Font.PLAIN, 14));
+		btnUpdate.setBackground(new Color(255, 255, 255));
+		btnUpdate.setBounds(342, 10, 97, 30);
+		pn3.add(btnUpdate);
+		
+		btnDelete = new JButton("예약취소");
+		btnDelete.setFont(new Font("이사만루체 Light", Font.PLAIN, 14));
+		btnDelete.setBackground(new Color(255, 255, 255));
+		btnDelete.setBounds(451, 10, 97, 30);
+		pn3.add(btnDelete);
+		
 		
 		// 메인화면에 전체 예약현황 출력
 		title = new Vector<>();
@@ -112,11 +126,50 @@ public class AdminReservationMain extends JFrame {
 			}
 		});
 		
-		// 예약 관리
+		// 학생 관리
 		btnMyPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dispose();
 				new AdminMyPage(id);
+			}
+		});
+		
+		// 예약 수정
+		btnUpdate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int row = table.getSelectedRow();
+				if(row < 0) {
+					JOptionPane.showMessageDialog(null, "예약내역을 선택 후 버튼을 눌러주세요.");
+				}
+				else {
+					dispose();
+					new ReservationUpdate(id, row, table);
+				}
+			}
+		});
+		
+		// 예약 취소
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int row = table.getSelectedRow();
+				if(row < 0) {
+					JOptionPane.showMessageDialog(null, "예약내역을 선택 후 버튼을 눌러주세요.");
+				}
+				else {
+					int ans = JOptionPane.showConfirmDialog(null, "예약을 취소하시겠습니까?","",JOptionPane.YES_NO_OPTION);
+					if(ans == 0) {
+						String studentID = table.getValueAt(row, 3).toString();
+						res = dao.setDelete(studentID,row,table);
+						if(res != 0) {
+							JOptionPane.showMessageDialog(null, "예약이 취소되었습니다.");
+							dispose();
+							new AdminReservationMain(id);
+						}
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "작업을 취소합니다.");
+					}
+				}
 			}
 		});
 		

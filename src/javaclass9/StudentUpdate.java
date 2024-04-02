@@ -14,6 +14,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
+import java.awt.Color;
 
 public class StudentUpdate extends JFrame {
 	private JTextField txtStudentID,txtStudentName;
@@ -67,11 +68,13 @@ public class StudentUpdate extends JFrame {
 		pn2.setLayout(null);
 		
 		btnUpdate = new JButton("변경");
+		btnUpdate.setBackground(new Color(255, 255, 255));
 		btnUpdate.setFont(new Font("이사만루체 Light", Font.PLAIN, 13));
 		btnUpdate.setBounds(118, 0, 60, 29);
 		pn2.add(btnUpdate);
 		
 		btnCancel = new JButton("취소");
+		btnCancel.setBackground(new Color(255, 255, 255));
 		btnCancel.setFont(new Font("이사만루체 Light", Font.PLAIN, 13));
 		btnCancel.setBounds(190, 0, 60, 29);
 		pn2.add(btnCancel);
